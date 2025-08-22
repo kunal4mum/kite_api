@@ -35,6 +35,17 @@
 </head>
 <body>
   <h2>Python Zerodha Kite Connect Api Auto Login Code</h2>
+  </pre>
+<button onclick="copyCode()">Copy Code</button>
+
+<script>
+  function copyCode() {
+    const code = document.getElementById('code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      alert('Code copied to clipboard!');
+    });
+  }
+</script>
   <pre id="code">
 # -----Libraries-------
 # pip install --upgrade kiteconnect
