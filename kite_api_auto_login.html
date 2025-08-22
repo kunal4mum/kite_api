@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Zerodha Kite Connect Api Auto Login Code</title>
+  <style>
+    body {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      font-family: monospace;
+      margin: 0;
+      padding: 20px;
+    }
+    pre {
+      background-color: #252526;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005a9e;
+    }
+  </style>
+</head>
+<body>
+  <h2>Python Zerodha Kite Connect Api Auto Login Code</h2>
+  <pre id="code">
+# -----Libraries-------
+# pip install --upgrade kiteconnect
+# pip install selenium
+# pip install pyotp
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+import time, urllib.parse, requests
+import pyotp
+import time
+
+# ====== Your details ======
+USER_ID = "IX3NNN"  
+PASSWORD = "XXXXXXX"
+API_KEY = "xxxmfcmanfm8jxxx"
+API_SECRET = "xxxgwg2esb5mmr0niikvyf4umzg4zxxx"
+AUTH_SECRET = "XXXVHPVR6XQXNWS2OLIQOPYPHDE5XXX"  # Base32 secret from Google Authenticator
+
+# Create TOTP object
+totp = pyotp.TOTP(AUTH_SECRET)
+
+# Get current OTP
+otp = totp.now()
+print("Current OTP:", otp)
+data = USER_ID + '&'+PASSWORD +'&'+ AUTH_SECRET
+
+# If you also want the remaining time before it expires:
+remaining = 30 - (int(time.time()) % 30)
+print("Expires in:", remaining, "seconds")
+OTP = otp 
+
+# ====== Step 1: Open login page ======
+login_url = f"https://kite.zerodha.com/connect/login?api_key="+API_KEY+"&v=3"
+print(login_url)
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.get(login_url)
+
+wait = WebDriverWait(driver, 3)  # wait up to 15 seconds for elements
+ 
+#====== Step 2: Enter User ID ======
+userid_box = wait.until(EC.presence_of_element_located((By.ID, "userid")))
+userid_box.send_keys(USER_ID)
+userid_box.send_keys(Keys.RETURN)
+
+# ====== Step 3: Enter Password ======
+password_box = wait.until(EC.presence_of_element_located((By.ID, "password")))
+password_box.send_keys(PASSWORD)
+password_box.send_keys(Keys.RETURN)
+
+# ====== Step 4: Enter OTP ====== ((By.XPATH, '//input[@placeholder="Enter OTP"]'))
+otp_box = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "form.twofa-form input[type='number']")))
+otp_box.send_keys(OTP)
+otp_box.send_keys(Keys.RETURN)
+
+time.sleep(3)
+
+# ====== Step 5: Capture Redirect URL ======
+redirect_url = driver.current_url
+print("Redirect URL:", redirect_url)
+driver.quit()
+
+# ====== Step 6: Extract request_token ======
+parsed = urllib.parse.urlparse(redirect_url)
+params = urllib.parse.parse_qs(parsed.query)
+request_token = params.get("request_token", [""])[0]
+print("Request Token:", request_token)
+
+#KITE ACCESS
+import logging
+from kiteconnect import KiteConnect
+
+kite = KiteConnect(api_key=API_KEY)#PAID API
+
+data_kite = kite.generate_session(request_token, api_secret=API_SECRET)#PAID SECRET
+print(data_kite)
+access_token= data_kite["access_token"]
+print(access_token)
+  </pre>
+  <button onclick="copyCode()">Copy Code</button>
+
+  <script>
+    function copyCode() {
+      const code = document.getElementById('code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Code copied to clipboard!');
+      });
+    }
+  </script>
+</body>
+</html>
